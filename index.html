@@ -1,14 +1,110 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>Sean Forde</title>
-</head>
-<body>
-  <h1>Sean Forde</h1>
-  <p>Writer • Musician • Systems Thinker</p>
+<html lang="en">
 
-  <p>
-    <a href="https://seanforde.substack.com">Read my Substack</a>
-  </p>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sean Forde</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f6f4ef;
+      color: #1f2933;
+    }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 64px 24px;
+    }
+
+    header {
+      margin-bottom: 48px;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin: 0 0 12px;
+    }
+
+    .subtitle {
+      font-size: 1.25rem;
+      line-height: 1.5;
+      color: #4b5563;
+    }
+
+    .card {
+      display: block;
+      background: white;
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 18px;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.09);
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 1.4rem;
+    }
+
+    .card p {
+      margin: 0;
+      line-height: 1.5;
+      color: #52606d;
+    }
+
+    .locked {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .note {
+      margin-top: 36px;
+      font-size: 0.95rem;
+      color: #6b7280;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <header>
+      <h1>Sean Forde</h1>
+      <p class="subtitle">
+        Writer, musician, and builder exploring attention,
+        meaning, and the strange business of being a person.
+      </p>
+    </header>
+
+    <a class="card" href="https://smichaelforde.substack.com/">
+      <h2>Writing</h2>
+      <p>Essays and reflections on Substack.</p>
+    </a>
+
+    <a class="card" href="#">
+      <h2>Music</h2>
+      <p>Songs, albums, scores, and experiments. Link coming soon.</p>
+    </a>
+
+    <div class="card locked" title="Private family area coming soon">
+      <h2>Family</h2>
+      <p>Private family homebase. Login required. Coming soon.</p>
+    </div>
+
+    <p class="note">
+      This site is just a small front door. More rooms will appear over time.
+    </p>
+  </main>
 </body>
+
 </html>
