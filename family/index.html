@@ -8,8 +8,6 @@
     <title>Forde Family HQ</title>
 
     <link rel="stylesheet" href="styles.css" />
-
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
@@ -17,15 +15,13 @@
         <section id="login-view" class="card">
             <div class="lantern">🏮</div>
             <h1>Forde Family HQ</h1>
-            <p class="subtext">Sign in with your family Google account.</p>
+            <p class="subtext">Sign in with your approved family email.</p>
 
-            <div id="g_id_onload" data-client_id="YOUR_GOOGLE_CLIENT_ID_HERE" data-callback="handleCredentialResponse"
-                data-auto_prompt="false">
-            </div>
+            <form id="login-form">
+                <input id="email-input" type="email" placeholder="your@email.com" required />
 
-            <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with"
-                data-shape="pill">
-            </div>
+                <button type="submit">Send login link</button>
+            </form>
 
             <p id="login-error" class="error"></p>
         </section>
@@ -58,6 +54,7 @@
         </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js"></script>
 </body>
 
