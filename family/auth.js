@@ -7,7 +7,10 @@ const ALLOWED_USERS = [
     "spookybreadmold@gmail.com"
 ];
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+);
 
 const loginView = document.getElementById("login-view");
 const familyView = document.getElementById("family-view");
@@ -17,40 +20,40 @@ const signOutBtn = document.getElementById("sign-out-btn");
 const loginForm = document.getElementById("login-form");
 const emailInput = document.getElementById("email-input");
 
-function showFamilyView(email) {
+const redirectUrl = `${window.location.origin}/family/`;
+
+function showLogin(message = "") {
+    loginView.classList.remove("hidden");
+    familyView.classList.add("hidden");
+    loginError.textContent = message;
+}
+
+function showFamily(email) {
     loginView.classList.add("hidden");
     familyView.classList.remove("hidden");
     userEmail.textContent = `Signed in as ${email}`;
-}
-
-function showLoginView(message = "") {
-    familyView.classList.add("hidden");
-    loginView.classList.remove("hidden");
-    loginError.textContent = message;
 }
 
 function isAllowed(email) {
     return ALLOWED_USERS.includes(email.toLowerCase());
 }
 
-async function checkSession() {
-    const { data } = await supabase.auth.getSession();
-    const session = data.session;
+async function loadSession() {
+    const { data } = await supabaseClient.auth.getSession();
+    const user = data.session?.user;
 
-    if (!session) {
-        showLoginView();
+    if (!user) {
+        showLogin();
         return;
     }
 
-    const email = session.user.email;
-
-    if (!isAllowed(email)) {
-        await supabase.auth.signOut();
-        showLoginView("This email is not approved for Forde Family HQ.");
+    if (!isAllowed(user.email)) {
+        await supabaseClient.auth.signOut();
+        showLogin("This email is not approved for Forde Family HQ.");
         return;
     }
 
-    showFamilyView(email);
+    showFamily(user.email);
 }
 
 loginForm.addEventListener("submit", async (event) => {
@@ -59,28 +62,28 @@ loginForm.addEventListener("submit", async (event) => {
     const email = emailInput.value.trim().toLowerCase();
 
     if (!isAllowed(email)) {
-        showLoginView("This email is not approved for Forde Family HQ.");
+        showLogin("This email is not approved for Forde Family HQ.");
         return;
     }
 
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabaseClient.auth.signInWithOtp({
         email,
         options: {
-            emailRedirectTo: `${window.location.origin}/family/`
+            emailRedirectTo: redirectUrl
         }
     });
 
     if (error) {
-        showLoginView(error.message);
+        showLogin(error.message);
         return;
     }
 
-    showLoginView("Check your email for the login link.");
+    showLogin("Check your email for the login link.");
 });
 
 signOutBtn.addEventListener("click", async () => {
-    await supabase.auth.signOut();
-    showLoginView();
+    await supabaseClient.auth.signOut();
+    showLogin();
 });
 
-checkSession();
+loadSession();
