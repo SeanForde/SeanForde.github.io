@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Forde Family HQ</title>
+
+    <link rel="stylesheet" href="styles.css" />
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body>
+    <main class="app">
+        <section id="login-view" class="card">
+            <div class="lantern">🏮</div>
+            <h1>Forde Family HQ</h1>
+            <p class="subtext">Sign in with your family Google account.</p>
+
+            <div id="g_id_onload" data-client_id="YOUR_GOOGLE_CLIENT_ID_HERE" data-callback="handleCredentialResponse"
+                data-auto_prompt="false">
+            </div>
+
+            <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with"
+                data-shape="pill">
+            </div>
+
+            <p id="login-error" class="error"></p>
+        </section>
+
+        <section id="family-view" class="hidden">
+            <header class="topbar">
+                <div>
+                    <h1>Forde Family HQ</h1>
+                    <p id="user-email" class="subtext"></p>
+                </div>
+                <button id="sign-out-btn">Sign out</button>
+            </header>
+
+            <section class="grid">
+                <div class="card">
+                    <h2>Today</h2>
+                    <p>Calendar view coming next.</p>
+                </div>
+
+                <div class="card">
+                    <h2>This Week</h2>
+                    <p>Family events will live here.</p>
+                </div>
+
+                <div class="card">
+                    <h2>Quick Links</h2>
+                    <a href="https://calendar.google.com" target="_blank">Open Google Calendar</a>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script src="auth.js"></script>
+</body>
+
+</html>
