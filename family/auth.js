@@ -1,5 +1,6 @@
 const SUPABASE_URL = "https://supabase.com/dashboard/project/mnmdyzaezuhxmgktkxhu";
-const SUPABASE_ANON_KEY = "sb_publishable_35eXWth0XZ2Z-FijRJdt0A_RbR0ApaA";
+const SUPABASE_URL =
+    "https://mnmdyzaezuhxmgktkxhu.supabase.co";
 
 const ALLOWED_USERS = [
     "s.michael.forde@gmail.com",
