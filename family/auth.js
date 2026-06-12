@@ -1,6 +1,5 @@
-const SUPABASE_URL = "https://supabase.com/dashboard/project/mnmdyzaezuhxmgktkxhu";
-const SUPABASE_URL =
-    "https://mnmdyzaezuhxmgktkxhu.supabase.co";
+const SUPABASE_URL = "https://mnmdyzaezuhxmgktkxhu.supabase.co";
+const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_PUBLIC_KEY_HERE";
 
 const ALLOWED_USERS = [
     "s.michael.forde@gmail.com",
@@ -20,8 +19,11 @@ const userEmail = document.getElementById("user-email");
 const signOutBtn = document.getElementById("sign-out-btn");
 const loginForm = document.getElementById("login-form");
 const emailInput = document.getElementById("email-input");
+const passwordInput = document.getElementById("password-input");
 
-const redirectUrl = `${window.location.origin}/family/`;
+function isAllowed(email) {
+    return ALLOWED_USERS.includes(email.toLowerCase());
+}
 
 function showLogin(message = "") {
     loginView.classList.remove("hidden");
@@ -33,10 +35,6 @@ function showFamily(email) {
     loginView.classList.add("hidden");
     familyView.classList.remove("hidden");
     userEmail.textContent = `Signed in as ${email}`;
-}
-
-function isAllowed(email) {
-    return ALLOWED_USERS.includes(email.toLowerCase());
 }
 
 async function loadSession() {
@@ -61,17 +59,16 @@ loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const email = emailInput.value.trim().toLowerCase();
+    const password = passwordInput.value;
 
     if (!isAllowed(email)) {
         showLogin("This email is not approved for Forde Family HQ.");
         return;
     }
 
-    const { error } = await supabaseClient.auth.signInWithOtp({
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
-        options: {
-            emailRedirectTo: redirectUrl
-        }
+        password
     });
 
     if (error) {
@@ -79,7 +76,7 @@ loginForm.addEventListener("submit", async (event) => {
         return;
     }
 
-    showLogin("Check your email for the login link.");
+    showFamily(data.user.email);
 });
 
 signOutBtn.addEventListener("click", async () => {
