@@ -5,55 +5,77 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Forde Family HQ</title>
+
     <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
     <main class="app">
+
         <section id="login-view" class="card">
             <div class="lantern">🏮</div>
+
             <h1>Forde Family HQ</h1>
-            <p class="subtext">Sign in with your family account.</p>
+
+            <p class="subtext">
+                Sign in with your approved Google account.
+            </p>
 
             <form id="login-form">
-                <input id="email-input" type="email" placeholder="Email" required />
-                <input id="password-input" type="password" placeholder="Password" required />
-                <button type="submit">Sign in</button>
+                <button type="submit">
+                    Sign in with Google
+                </button>
             </form>
 
             <p id="login-error" class="error"></p>
         </section>
 
         <section id="family-view" class="hidden">
+
             <header class="topbar">
                 <div>
                     <h1>Forde Family HQ</h1>
                     <p id="user-email" class="subtext"></p>
                 </div>
-                <button id="sign-out-btn">Sign out</button>
+
+                <button id="sign-out-btn">
+                    Sign out
+                </button>
             </header>
 
             <section class="grid">
+
                 <div class="card">
-                    <h2>Today</h2>
-                    <p>Calendar view coming next.</p>
+                    <h2>Family Calendar</h2>
+                    <p>
+                        Calendar integration coming next.
+                    </p>
                 </div>
 
                 <div class="card">
-                    <h2>This Week</h2>
-                    <p>Family events will live here.</p>
+                    <h2>Family Resources</h2>
+                    <p>
+                        Shared documents, links, and information.
+                    </p>
                 </div>
 
                 <div class="card">
                     <h2>Quick Links</h2>
-                    <a href="https://calendar.google.com" target="_blank">Open Google Calendar</a>
+
+                    <a href="https://calendar.google.com" target="_blank" rel="noopener noreferrer">
+                        Open Google Calendar
+                    </a>
                 </div>
+
             </section>
+
         </section>
+
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js"></script>
+
 </body>
 
 </html>

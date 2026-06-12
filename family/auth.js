@@ -18,8 +18,8 @@ const loginError = document.getElementById("login-error");
 const userEmail = document.getElementById("user-email");
 const signOutBtn = document.getElementById("sign-out-btn");
 const loginForm = document.getElementById("login-form");
-const emailInput = document.getElementById("email-input");
-const passwordInput = document.getElementById("password-input");
+
+const redirectUrl = `${window.location.origin}/family/`;
 
 function isAllowed(email) {
     return ALLOWED_USERS.includes(email.toLowerCase());
@@ -38,7 +38,13 @@ function showFamily(email) {
 }
 
 async function loadSession() {
-    const { data } = await supabaseClient.auth.getSession();
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    if (error) {
+        showLogin(error.message);
+        return;
+    }
+
     const user = data.session?.user;
 
     if (!user) {
@@ -48,7 +54,7 @@ async function loadSession() {
 
     if (!isAllowed(user.email)) {
         await supabaseClient.auth.signOut();
-        showLogin("This email is not approved for Forde Family HQ.");
+        showLogin("This Google account is not approved for Forde Family HQ.");
         return;
     }
 
@@ -58,25 +64,16 @@ async function loadSession() {
 loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const email = emailInput.value.trim().toLowerCase();
-    const password = passwordInput.value;
-
-    if (!isAllowed(email)) {
-        showLogin("This email is not approved for Forde Family HQ.");
-        return;
-    }
-
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+            redirectTo: redirectUrl
+        }
     });
 
     if (error) {
         showLogin(error.message);
-        return;
     }
-
-    showFamily(data.user.email);
 });
 
 signOutBtn.addEventListener("click", async () => {
