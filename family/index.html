@@ -11,71 +11,50 @@
 
 <body>
     <main class="app">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Private Family Space</p>
+                <h1>Forde Family HQ</h1>
+                <p id="user-email" class="subtext">Checking session...</p>
+            </div>
 
-        <section id="login-view" class="card">
+            <button id="sign-out-btn">Sign out</button>
+        </header>
+
+        <section class="hero card">
             <div class="lantern">🏮</div>
-
-            <h1>Forde Family HQ</h1>
-
-            <p class="subtext">
-                Sign in with your approved Google account.
-            </p>
-
-            <form id="login-form">
-                <button type="submit">
-                    Sign in with Google
-                </button>
-            </form>
-
-            <p id="login-error" class="error"></p>
+            <div>
+                <h2>Welcome home.</h2>
+                <p>
+                    A small operating space for family calendars, resources,
+                    and the shared work of keeping life visible.
+                </p>
+            </div>
         </section>
 
-        <section id="family-view" class="hidden">
+        <section class="grid">
+            <div class="card">
+                <h2>Family Calendar</h2>
+                <p>Calendar integration coming next.</p>
+                <a href="https://calendar.google.com" target="_blank" rel="noopener noreferrer">
+                    Open Google Calendar
+                </a>
+            </div>
 
-            <header class="topbar">
-                <div>
-                    <h1>Forde Family HQ</h1>
-                    <p id="user-email" class="subtext"></p>
-                </div>
+            <div class="card">
+                <h2>Home Operations</h2>
+                <p>House projects, appointments, repairs, and reminders.</p>
+            </div>
 
-                <button id="sign-out-btn">
-                    Sign out
-                </button>
-            </header>
-
-            <section class="grid">
-
-                <div class="card">
-                    <h2>Family Calendar</h2>
-                    <p>
-                        Calendar integration coming next.
-                    </p>
-                </div>
-
-                <div class="card">
-                    <h2>Family Resources</h2>
-                    <p>
-                        Shared documents, links, and information.
-                    </p>
-                </div>
-
-                <div class="card">
-                    <h2>Quick Links</h2>
-
-                    <a href="https://calendar.google.com" target="_blank" rel="noopener noreferrer">
-                        Open Google Calendar
-                    </a>
-                </div>
-
-            </section>
-
+            <div class="card">
+                <h2>Family Resources</h2>
+                <p>Shared documents, useful links, school portals, and family references.</p>
+            </div>
         </section>
-
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="auth.js"></script>
-
+    <script src="home.js"></script>
 </body>
 
 </html>

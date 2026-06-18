@@ -22,15 +22,22 @@ body {
     box-shadow: 0 10px 30px rgba(47, 36, 29, 0.08);
 }
 
-#login-view {
-    max-width: 420px;
-    margin: 12vh auto 0;
-    text-align: center;
+.topbar {
+    max-width: 1000px;
+    margin: 0 auto 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
 }
 
-.lantern {
-    font-size: 48px;
-    margin-bottom: 12px;
+.eyebrow {
+    margin: 0 0 6px;
+    color: #8a6f5a;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
 }
 
 h1,
@@ -38,35 +45,32 @@ h2 {
     margin-top: 0;
 }
 
+h1 {
+    margin-bottom: 8px;
+}
+
 .subtext {
     color: #6f6258;
+    margin: 0;
 }
 
-.error {
-    color: #9f2a2a;
-    min-height: 24px;
-    margin-top: 16px;
-}
-
-.hidden {
-    display: none;
-}
-
-.topbar {
+.hero {
     max-width: 1000px;
     margin: 0 auto 24px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 20px;
 }
 
-button {
-    border: 0;
-    border-radius: 999px;
-    padding: 10px 16px;
-    background: #2f241d;
-    color: white;
-    cursor: pointer;
+.hero p {
+    margin-bottom: 0;
+    color: #6f6258;
+    line-height: 1.5;
+}
+
+.lantern {
+    font-size: 48px;
+    flex: 0 0 auto;
 }
 
 .grid {
@@ -77,7 +81,39 @@ button {
     gap: 16px;
 }
 
+.card p {
+    color: #6f6258;
+    line-height: 1.5;
+}
+
+button {
+    border: 0;
+    border-radius: 999px;
+    padding: 12px 20px;
+    background: #2f241d;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    white-space: nowrap;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
 a {
     color: #5b3f2e;
-    font-weight: 600;
+    font-weight: 700;
+}
+
+@media (max-width: 640px) {
+    .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .hero {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 }
