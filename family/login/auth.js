@@ -7,6 +7,8 @@ const ALLOWED_USERS = [
     "spookybreadmold@gmail.com"
 ];
 
+console.log("🏠 Family page loaded");
+
 const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_ANON_KEY,
@@ -19,40 +21,75 @@ const supabaseClient = window.supabase.createClient(
     }
 );
 
-const loginForm = document.getElementById("login-form");
-const loginError = document.getElementById("login-error");
+console.log("✅ Supabase client created on family page");
+
+const userEmail = document.getElementById("user-email");
+const signOutBtn = document.getElementById("sign-out-btn");
 
 function isAllowed(email) {
-    return ALLOWED_USERS.includes(email.toLowerCase());
+    const allowed = ALLOWED_USERS.includes(email.toLowerCase());
+
+    console.log("🔍 Checking family allow list");
+    console.log("   Email:", email);
+    console.log("   Allowed:", allowed);
+
+    return allowed;
 }
 
-function showError(message) {
-    loginError.textContent = message;
+function goToLogin(reason = "No reason provided") {
+    console.warn("➡️ Redirecting to login");
+    console.warn("   Reason:", reason);
+
+    window.location.href = "/family/login/";
 }
 
-async function redirectIfLoggedIn() {
-    const { data } = await supabaseClient.auth.getSession();
+async function checkAccess() {
+    console.log("🔄 Checking access on /family/...");
+
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    if (error) {
+        console.error("❌ Session error on family page:", error);
+        goToLogin("Session error");
+        return;
+    }
+
+    console.log("📦 Family session payload:", data);
 
     const user = data.session?.user;
 
-    if (user && isAllowed(user.email)) {
-        window.location.href = "/family/";
+    if (!user) {
+        goToLogin("No user/session found");
+        return;
     }
+
+    console.log("👤 Family user found:", user);
+    console.log("📧 Family user email:", user.email);
+
+    if (!isAllowed(user.email)) {
+        console.warn("⛔ Family user not approved:", user.email);
+        await supabaseClient.auth.signOut();
+        goToLogin("User not in allow list");
+        return;
+    }
+
+    console.log("✅ Family user approved");
+    userEmail.textContent = `Signed in as ${user.email}`;
 }
 
-loginForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+signOutBtn.addEventListener("click", async () => {
+    console.log("🚪 Sign out clicked");
 
-    const { error } = await supabaseClient.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-            redirectTo: `${window.location.origin}/family/`
-        }
-    });
+    await supabaseClient.auth.signOut();
 
-    if (error) {
-        showError(error.message);
-    }
+    goToLogin("User signed out");
 });
 
-redirectIfLoggedIn();
+supabaseClient.auth.onAuthStateChange((event, session) => {
+    console.log("🔔 Family auth state changed");
+    console.log("   Event:", event);
+    console.log("   Session:", session);
+    console.log("   Email:", session?.user?.email);
+});
+
+checkAccess();

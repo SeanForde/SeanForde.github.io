@@ -1,5 +1,5 @@
 const SUPABASE_URL = "https://mnmdyzaezuhxmgktkxhu.supabase.co";
-const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_PUBLIC_KEY_HERE";
+const SUPABASE_ANON_KEY = "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";
 
 const ALLOWED_USERS = [
     "s.michael.forde@gmail.com",
