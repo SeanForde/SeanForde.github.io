@@ -9,7 +9,14 @@ const ALLOWED_USERS = [
 
 const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
-    SUPABASE_ANON_KEY
+    SUPABASE_ANON_KEY,
+    {
+        auth: {
+            detectSessionInUrl: true,
+            persistSession: true,
+            autoRefreshToken: true
+        }
+    }
 );
 
 const loginView = document.getElementById("login-view");
@@ -34,18 +41,12 @@ function showLogin(message = "") {
 function showFamily(email) {
     loginView.classList.add("hidden");
     familyView.classList.remove("hidden");
+    loginError.textContent = "";
     userEmail.textContent = `Signed in as ${email}`;
 }
 
-async function loadSession() {
-    const { data, error } = await supabaseClient.auth.getSession();
-
-    if (error) {
-        showLogin(error.message);
-        return;
-    }
-
-    const user = data.session?.user;
+async function handleSession(session) {
+    const user = session?.user;
 
     if (!user) {
         showLogin();
@@ -59,6 +60,17 @@ async function loadSession() {
     }
 
     showFamily(user.email);
+}
+
+async function loadSession() {
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    if (error) {
+        showLogin(error.message);
+        return;
+    }
+
+    await handleSession(data.session);
 }
 
 loginForm.addEventListener("submit", async (event) => {
@@ -79,6 +91,10 @@ loginForm.addEventListener("submit", async (event) => {
 signOutBtn.addEventListener("click", async () => {
     await supabaseClient.auth.signOut();
     showLogin();
+});
+
+supabaseClient.auth.onAuthStateChange((_event, session) => {
+    handleSession(session);
 });
 
 loadSession();
