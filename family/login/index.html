@@ -6,37 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Forde Family Login</title>
 
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="../styles.css" />
 </head>
 
 <body>
     <main class="app">
-
         <section class="card login-card">
-
             <div class="lantern">🏮</div>
-
             <h1>Forde Family HQ</h1>
-
-            <p class="subtext">
-                Sign in with your family Google account.
-            </p>
+            <p class="subtext">Sign in with your family Google account.</p>
 
             <form id="login-form">
-                <button type="submit">
-                    Sign in with Google
-                </button>
+                <button type="submit">Sign in with Google</button>
             </form>
 
             <p id="login-error" class="error"></p>
-
         </section>
-
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../config.js"></script>
     <script src="auth.js"></script>
-
 </body>
 
 </html>

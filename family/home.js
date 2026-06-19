@@ -1,30 +1,5 @@
-const SUPABASE_URL = "https://mnmdyzaezuhxmgktkxhu.supabase.co";
-const SUPABASE_ANON_KEY = "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";
-
-const ALLOWED_USERS = [
-    "s.michael.forde@gmail.com",
-    "m.forde116@gmail.com",
-    "spookybreadmold@gmail.com"
-];
-
-const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY,
-    {
-        auth: {
-            detectSessionInUrl: true,
-            persistSession: true,
-            autoRefreshToken: true
-        }
-    }
-);
-
 const userEmail = document.getElementById("user-email");
 const signOutBtn = document.getElementById("sign-out-btn");
-
-function isAllowed(email) {
-    return ALLOWED_USERS.includes(email.toLowerCase());
-}
 
 function goToLogin() {
     window.location.href = "/family/login/";
