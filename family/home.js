@@ -19,7 +19,6 @@ async function checkAccess() {
         goToLogin();
         return;
     }
-
     userEmail.textContent = `Signed in as ${user.email}`;
 }
 
