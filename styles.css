@@ -1,0 +1,1417 @@
+/*
+ * styles.css
+ *
+ * Shared styles for seanforde.com.
+ *
+ * CURRENT RESPONSIBILITIES
+ *
+ * - Establish the visual language of the site.
+ * - Keep text readable at every window size.
+ * - Present the Substack archive as a browsable collection.
+ * - Make archive navigation comfortable with mouse,
+ *   keyboard, and touch.
+ * - Adapt naturally from phones to large monitors.
+ *
+ * JavaScript decides WHAT appears.
+ * HTML provides STRUCTURE.
+ * CSS decides HOW it appears.
+ */
+
+
+/* =========================================================
+   DESIGN VARIABLES
+
+   Keeping recurring values here makes the visual system
+   easier to adjust later without hunting through the file.
+   ========================================================= */
+
+:root {
+
+    --background:
+        #f6f4ef;
+
+    --text:
+        #1f2933;
+
+    --text-secondary:
+        #4b5563;
+
+    --text-muted:
+        #6b7280;
+
+    --border:
+        #d8d5ce;
+
+    --surface:
+        rgba(255, 255, 255, 0.38);
+
+    --active:
+        #1f2933;
+
+    --active-text:
+        #ffffff;
+
+    --focus:
+        #1f2933;
+
+    --content-width:
+        1120px;
+
+    --sidebar-width:
+        220px;
+}
+
+
+/* =========================================================
+   GLOBAL RESET
+   ========================================================= */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   DOCUMENT
+   ========================================================= */
+
+html {
+    font-size: 16px;
+
+    /*
+     * Prevent automatic text enlargement from producing
+     * unexpected layouts on some mobile browsers.
+     */
+
+    -webkit-text-size-adjust: 100%;
+}
+
+
+body {
+    margin: 0;
+
+    min-width: 0;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background:
+        var(--background);
+
+    color:
+        var(--text);
+
+    line-height: 1.6;
+
+    overflow-wrap:
+        break-word;
+}
+
+
+/* =========================================================
+   MEDIA DEFAULTS
+
+   Prevent images and other media from exceeding their
+   containers.
+   ========================================================= */
+
+img,
+svg,
+video {
+    max-width: 100%;
+}
+
+
+/* =========================================================
+   MAIN PAGE
+
+   The archive now needs more horizontal room than the
+   original single-column page because it contains:
+
+   sidebar + reading column
+
+   The posts themselves remain comfortably constrained.
+   ========================================================= */
+
+main {
+    width:
+        min(calc(100% - 48px),
+            var(--content-width));
+
+    margin-inline:
+        auto;
+
+    padding-block:
+        clamp(32px, 6vw, 72px);
+}
+
+
+/* =========================================================
+   LINKS
+   ========================================================= */
+
+a {
+    color: inherit;
+}
+
+
+/* =========================================================
+   KEYBOARD FOCUS
+
+   :focus-visible means keyboard users get a clear focus
+   indicator without adding unnecessary outlines to normal
+   mouse/touch interactions.
+   ========================================================= */
+
+a:focus-visible,
+button:focus-visible {
+    outline:
+        3px solid var(--focus);
+
+    outline-offset:
+        3px;
+}
+
+
+/* =========================================================
+   RETURN NAVIGATION
+   ========================================================= */
+
+.back {
+    display:
+        inline-block;
+
+    margin-bottom:
+        clamp(28px, 5vw, 48px);
+
+    color:
+        var(--text-muted);
+
+    text-decoration:
+        none;
+
+    font-weight:
+        500;
+}
+
+
+.back:hover {
+    color:
+        var(--text);
+
+    text-decoration:
+        underline;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.archive-header {
+    max-width:
+        760px;
+
+    margin-bottom:
+        clamp(32px, 5vw, 56px);
+}
+
+
+h1 {
+    margin:
+        0 0 12px;
+
+    font-size:
+        clamp(2.25rem, 6vw, 3.5rem);
+
+    line-height:
+        1.05;
+
+    letter-spacing:
+        -0.035em;
+}
+
+
+.subtitle {
+    max-width:
+        40rem;
+
+    margin:
+        0;
+
+    font-size:
+        clamp(1.05rem, 2vw, 1.25rem);
+
+    line-height:
+        1.5;
+
+    color:
+        var(--text-secondary);
+}
+
+
+/* =========================================================
+   ARCHIVE LAYOUT
+
+   Larger screens:
+
+   ┌──────────────┬─────────────────────────┐
+   │ Browse       │ Posts                   │
+   │              │                         │
+   │ Medium       │                         │
+   │ Format       │                         │
+   │ State        │                         │
+   │ Topic        │                         │
+   └──────────────┴─────────────────────────┘
+   ========================================================= */
+
+.archive-layout {
+    display:
+        grid;
+
+    grid-template-columns:
+        var(--sidebar-width) minmax(0, 1fr);
+
+    gap:
+        clamp(40px, 6vw, 80px);
+
+    align-items:
+        start;
+}
+
+
+/* =========================================================
+   ARCHIVE SIDEBAR
+
+   Sticky navigation means someone exploring a long archive
+   does not lose their way while scrolling through posts.
+   ========================================================= */
+
+.archive-sidebar {
+    position:
+        sticky;
+
+    top:
+        24px;
+
+    min-width:
+        0;
+}
+
+
+/* =========================================================
+   SIDEBAR HEADER
+   ========================================================= */
+
+.archive-sidebar-header {
+    margin-bottom:
+        20px;
+}
+
+
+.archive-sidebar-title {
+    margin:
+        0;
+
+    font-size:
+        0.85rem;
+
+    font-weight:
+        700;
+
+    line-height:
+        1.3;
+
+    letter-spacing:
+        0.08em;
+
+    text-transform:
+        uppercase;
+
+    color:
+        var(--text-muted);
+}
+
+
+/* =========================================================
+   ARCHIVE NAVIGATION
+   ========================================================= */
+
+.archive-navigation {
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        28px;
+}
+
+
+/* =========================================================
+   FILTER GROUP
+
+   Medium
+       Music
+       Writing
+
+   Format
+       Essay
+       Song
+   ========================================================= */
+
+.archive-filter-group {
+    margin:
+        0;
+}
+
+
+.archive-filter-heading {
+    margin:
+        0 0 8px;
+
+    font-size:
+        0.78rem;
+
+    font-weight:
+        700;
+
+    line-height:
+        1.3;
+
+    letter-spacing:
+        0.07em;
+
+    text-transform:
+        uppercase;
+
+    color:
+        var(--text-muted);
+}
+
+
+.archive-filter-list {
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        2px;
+}
+
+
+/* =========================================================
+   FILTER BUTTONS
+
+   Buttons intentionally look more like navigation than
+   application controls.
+
+   Minimum height makes them easy touch targets while still
+   keeping the sidebar visually quiet.
+   ========================================================= */
+
+.archive-filter {
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        12px;
+
+    width:
+        100%;
+
+    min-height:
+        42px;
+
+    padding:
+        8px 10px;
+
+    border:
+        0;
+
+    border-radius:
+        6px;
+
+    background:
+        transparent;
+
+    color:
+        var(--text-secondary);
+
+    font:
+        inherit;
+
+    line-height:
+        1.3;
+
+    text-align:
+        left;
+
+    cursor:
+        pointer;
+
+    appearance:
+        none;
+
+    -webkit-appearance:
+        none;
+}
+
+
+.archive-filter:hover {
+    background:
+        var(--surface);
+
+    color:
+        var(--text);
+}
+
+
+/* =========================================================
+   ACTIVE FILTER
+
+   The selected category should be immediately apparent,
+   but it does not need to dominate the interface.
+   ========================================================= */
+
+.archive-filter.is-active {
+    background:
+        var(--active);
+
+    color:
+        var(--active-text);
+}
+
+
+.archive-filter-label {
+    min-width:
+        0;
+}
+
+
+.archive-filter-count {
+    flex:
+        0 0 auto;
+
+    font-size:
+        0.8rem;
+
+    opacity:
+        0.65;
+
+    font-variant-numeric:
+        tabular-nums;
+}
+
+
+/* =========================================================
+   ALL POSTS
+
+   Slight separation makes this function as the archive's
+   "home" button.
+   ========================================================= */
+
+.archive-filter-all {
+    margin-bottom:
+        2px;
+
+    font-weight:
+        600;
+}
+
+
+/* =========================================================
+   ARCHIVE CONTENT
+   ========================================================= */
+
+.archive-content {
+    min-width:
+        0;
+
+    width:
+        100%;
+
+    max-width:
+        760px;
+}
+
+
+.archive-posts,
+#posts {
+    width:
+        100%;
+}
+
+
+/* =========================================================
+   STATUS / LOADING / ERRORS
+   ========================================================= */
+
+.archive-status,
+#status {
+    margin:
+        0 0 24px;
+
+    color:
+        var(--text-muted);
+}
+
+
+/* =========================================================
+   POST CARD
+
+   The entire post remains one large link.
+
+   There are no small "Read more" targets to hunt for,
+   which is especially helpful after entering from a QR
+   code on a phone.
+   ========================================================= */
+
+.post {
+    display:
+        block;
+
+    width:
+        100%;
+
+    padding-block:
+        clamp(24px, 4vw, 36px);
+
+    border-bottom:
+        1px solid var(--border);
+
+    color:
+        inherit;
+
+    text-decoration:
+        none;
+}
+
+
+.post:first-child {
+    border-top:
+        1px solid var(--border);
+}
+
+
+/* =========================================================
+   POST HOVER
+
+   Keep the interaction restrained. The title communicates
+   clickability rather than moving the entire card around.
+   ========================================================= */
+
+.post:hover .post-title {
+    text-decoration:
+        underline;
+
+    text-decoration-thickness:
+        1px;
+
+    text-underline-offset:
+        3px;
+}
+
+
+/* =========================================================
+   POST IMAGE
+   ========================================================= */
+
+.post-image {
+    display:
+        block;
+
+    width:
+        100%;
+
+    height:
+        auto;
+
+    aspect-ratio:
+        16 / 9;
+
+    margin-bottom:
+        20px;
+
+    object-fit:
+        cover;
+
+    border-radius:
+        8px;
+
+    background:
+        var(--border);
+}
+
+
+/* =========================================================
+   POST TITLE
+   ========================================================= */
+
+.post-title {
+    margin:
+        0 0 6px;
+
+    font-size:
+        clamp(1.2rem, 2.5vw, 1.45rem);
+
+    font-weight:
+        600;
+
+    line-height:
+        1.3;
+}
+
+
+/* =========================================================
+   POST DATE
+   ========================================================= */
+
+.post-date {
+    margin:
+        0 0 12px;
+
+    font-size:
+        0.9rem;
+
+    color:
+        var(--text-muted);
+}
+
+
+/* =========================================================
+   POST DESCRIPTION
+
+   ch limits line length based roughly on character width,
+   which keeps prose comfortable to read.
+   ========================================================= */
+
+.post-description {
+    max-width:
+        65ch;
+
+    margin:
+        0;
+
+    font-size:
+        clamp(0.95rem, 1.8vw, 1rem);
+
+    line-height:
+        1.65;
+
+    color:
+        var(--text-secondary);
+}
+
+
+/* =========================================================
+   TABLETS / NARROW LAPTOP WINDOWS
+
+   At this point the permanent left sidebar begins taking
+   too much space.
+
+   Navigation moves above the posts and becomes a compact,
+   horizontally organized browsing area.
+
+   No JavaScript changes are required.
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+    main {
+        width:
+            min(calc(100% - 40px),
+                760px);
+    }
+
+
+    .archive-layout {
+        display:
+            block;
+    }
+
+
+    .archive-sidebar {
+        position:
+            static;
+
+        width:
+            100%;
+
+        margin-bottom:
+            36px;
+
+        padding:
+            18px;
+
+        border:
+            1px solid var(--border);
+
+        border-radius:
+            10px;
+
+        background:
+            var(--surface);
+    }
+
+
+    .archive-sidebar-header {
+        margin-bottom:
+            14px;
+    }
+
+
+    /*
+     * Navigation sections wrap naturally instead of
+     * becoming one extremely tall sidebar.
+     */
+
+    .archive-navigation {
+        display:
+            grid;
+
+        grid-template-columns:
+            repeat(2,
+                minmax(0, 1fr));
+
+        gap:
+            22px 28px;
+    }
+
+
+    /*
+     * All Posts should remain the obvious starting point.
+     */
+
+    .archive-filter-all {
+        grid-column:
+            1 / -1;
+
+        width:
+            100%;
+    }
+
+
+    .archive-filter {
+        min-height:
+            44px;
+    }
+
+
+    .archive-content {
+        max-width:
+            none;
+    }
+}
+
+
+/* =========================================================
+   PHONES
+
+   One column.
+
+   Category buttons become comfortable finger-sized
+   navigation.
+
+   This is especially important because QR-code visitors
+   are very likely to arrive here on a phone.
+   ========================================================= */
+
+@media (max-width: 560px) {
+
+    main {
+        width:
+            min(calc(100% - 32px),
+                760px);
+
+        padding-block:
+            28px 48px;
+    }
+
+
+    .back {
+        margin-bottom:
+            28px;
+    }
+
+
+    .archive-header {
+        margin-bottom:
+            28px;
+    }
+
+
+    h1 {
+        font-size:
+            clamp(2rem, 11vw, 2.75rem);
+    }
+
+
+    .subtitle {
+        font-size:
+            1rem;
+    }
+
+
+    .archive-sidebar {
+        margin-bottom:
+            28px;
+
+        padding:
+            16px;
+    }
+
+
+    /*
+     * A single column is easier to scan and tap on narrow
+     * phones than squeezing two taxonomy columns together.
+     */
+
+    .archive-navigation {
+        grid-template-columns:
+            1fr;
+
+        gap:
+            20px;
+    }
+
+
+    .archive-filter-list {
+        gap:
+            3px;
+    }
+
+
+    /*
+     * 48px provides a generous touch target.
+     */
+
+    .archive-filter {
+        min-height:
+            48px;
+
+        padding:
+            10px 12px;
+    }
+
+
+    /*
+     * A slightly taller image works better on narrow
+     * portrait screens.
+     */
+
+    .post-image {
+        aspect-ratio:
+            4 / 3;
+
+        border-radius:
+            6px;
+    }
+
+
+    .post {
+        padding-block:
+            26px;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+
+   Preserve usable space even on unusually narrow windows.
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+    main {
+        width:
+            calc(100% - 24px);
+    }
+
+
+    .archive-sidebar {
+        padding:
+            12px;
+    }
+}
+
+
+/* =========================================================
+   LARGE SCREENS
+
+   Allow the sidebar/archive relationship to breathe while
+   preventing the site from becoming excessively wide.
+   ========================================================= */
+
+@media (min-width: 1200px) {
+
+    main {
+        width:
+            min(calc(100% - 96px),
+                var(--content-width));
+    }
+}
+
+
+/* =========================================================
+   TOUCH DEVICES
+
+   Hover effects are useful with a mouse but shouldn't be
+   necessary for understanding the interface.
+   ========================================================= */
+
+@media (hover: none) {
+
+    .archive-filter:hover {
+        background:
+            transparent;
+
+        color:
+            var(--text-secondary);
+    }
+
+
+    .archive-filter.is-active:hover {
+        background:
+            var(--active);
+
+        color:
+            var(--active-text);
+    }
+
+
+    .post:hover .post-title {
+        text-decoration:
+            none;
+    }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+
+   Respect the visitor's operating-system accessibility
+   preference if animation is introduced later.
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior:
+            auto !important;
+
+        transition:
+            none !important;
+
+        animation:
+            none !important;
+    }
+}
+
+/* =========================================================
+   HOME / CALLING CARD
+
+   seanforde.com is the front door.
+
+   The goal is not to explain everything Sean does.
+   The goal is to make someone curious enough to walk
+   through another door.
+   ========================================================= */
+
+.home {
+    max-width:
+        860px;
+}
+
+
+/* =========================================================
+   INTRODUCTION
+   ========================================================= */
+
+.home-intro {
+    max-width:
+        720px;
+
+    margin-bottom:
+        clamp(48px, 9vw, 88px);
+}
+
+
+.home-hello {
+    margin:
+        0 0 6px;
+
+    font-size:
+        clamp(1rem, 2vw, 1.1rem);
+
+    color:
+        var(--text-muted);
+}
+
+
+.home-intro h1 {
+    margin-bottom:
+        20px;
+
+    font-size:
+        clamp(3.5rem, 11vw, 7rem);
+
+    line-height:
+        0.92;
+
+    letter-spacing:
+        -0.055em;
+}
+
+
+.home-subtitle {
+    max-width:
+        650px;
+
+    margin:
+        0;
+
+    font-size:
+        clamp(1.35rem, 3vw, 1.85rem);
+
+    line-height:
+        1.4;
+
+    color:
+        var(--text-secondary);
+}
+
+
+.home-introduction {
+    margin:
+        18px 0 0;
+
+    font-size:
+        1rem;
+
+    color:
+        var(--text-muted);
+}
+
+
+/* =========================================================
+   MAIN DOORS
+   ========================================================= */
+
+.home-doors {
+    display:
+        grid;
+
+    gap:
+        14px;
+}
+
+
+/* =========================================================
+   HOME CARD
+
+   These are less like traditional "cards" and more like
+   large doors.
+
+   The whole surface is clickable and comfortably sized
+   for somebody arriving on a phone from a QR code.
+   ========================================================= */
+
+.home-card {
+    display:
+        grid;
+
+    grid-template-columns:
+        auto minmax(0, 1fr) auto;
+
+    gap:
+        clamp(16px, 3vw, 28px);
+
+    align-items:
+        center;
+
+    min-height:
+        132px;
+
+    padding:
+        clamp(22px, 4vw, 32px);
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        16px;
+
+    background:
+        rgba(255, 255, 255, 0.45);
+
+    color:
+        inherit;
+
+    text-decoration:
+        none;
+}
+
+
+/* =========================================================
+   PRIMARY DOOR
+
+   "Look Around" is the site's main invitation.
+   ========================================================= */
+
+.home-card-primary {
+    background:
+        var(--text);
+
+    border-color:
+        var(--text);
+
+    color:
+        var(--background);
+}
+
+
+/* =========================================================
+   CARD NUMBER
+   ========================================================= */
+
+.home-card-number {
+    align-self:
+        start;
+
+    padding-top:
+        4px;
+
+    font-size:
+        0.75rem;
+
+    font-weight:
+        700;
+
+    letter-spacing:
+        0.08em;
+
+    opacity:
+        0.55;
+}
+
+
+/* =========================================================
+   CARD CONTENT
+   ========================================================= */
+
+.home-card-content {
+    display:
+        block;
+
+    min-width:
+        0;
+}
+
+
+.home-card-title {
+    display:
+        block;
+
+    margin-bottom:
+        6px;
+
+    font-size:
+        clamp(1.35rem, 3vw, 1.7rem);
+
+    font-weight:
+        600;
+
+    line-height:
+        1.2;
+}
+
+
+.home-card-description {
+    display:
+        block;
+
+    max-width:
+        540px;
+
+    line-height:
+        1.5;
+
+    color:
+        var(--text-secondary);
+}
+
+
+.home-card-primary .home-card-description {
+    color:
+        rgba(246, 244, 239, 0.76);
+}
+
+
+/* =========================================================
+   ARROW
+   ========================================================= */
+
+.home-card-arrow {
+    font-size:
+        clamp(1.5rem, 4vw, 2rem);
+
+    line-height:
+        1;
+}
+
+
+/* =========================================================
+   MOUSE INTERACTION
+
+   Keep this subtle.
+
+   The site should feel alive, not like a dashboard full
+   of animated UI components.
+   ========================================================= */
+
+@media (hover: hover) {
+
+    .home-card {
+        transition:
+            transform 150ms ease,
+            background-color 150ms ease;
+    }
+
+
+    .home-card:hover {
+        transform:
+            translateX(4px);
+
+        background:
+            rgba(255, 255, 255, 0.75);
+    }
+
+
+    .home-card-primary:hover {
+        background:
+            #303b46;
+    }
+
+
+    .home-card:hover .home-card-title {
+        text-decoration:
+            underline;
+
+        text-decoration-thickness:
+            1px;
+
+        text-underline-offset:
+            4px;
+    }
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.home-footer {
+    margin-top:
+        clamp(48px, 8vw, 80px);
+
+    padding-top:
+        20px;
+
+    border-top:
+        1px solid var(--border);
+
+    color:
+        var(--text-muted);
+
+    font-size:
+        0.9rem;
+}
+
+
+.home-footer p {
+    margin:
+        0;
+}
+
+
+/* =========================================================
+   HOME — PHONE
+   ========================================================= */
+
+@media (max-width: 560px) {
+
+    .home-intro {
+        margin-bottom:
+            44px;
+    }
+
+
+    .home-intro h1 {
+        font-size:
+            clamp(3.3rem, 18vw, 5rem);
+    }
+
+
+    .home-subtitle {
+        font-size:
+            1.25rem;
+    }
+
+
+    .home-card {
+        grid-template-columns:
+            1fr auto;
+
+        min-height:
+            128px;
+
+        padding:
+            20px;
+    }
+
+
+    /*
+     * On narrow screens the tiny sequence number isn't
+     * useful enough to justify taking horizontal space.
+     */
+
+    .home-card-number {
+        display:
+            none;
+    }
+
+
+    .home-card-title {
+        font-size:
+            1.35rem;
+    }
+
+
+    .home-card-description {
+        font-size:
+            0.95rem;
+    }
+
+
+    .home-card-arrow {
+        align-self:
+            center;
+    }
+}

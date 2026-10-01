@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <!-- =========================================================
+         PAGE SETUP
+         ========================================================= -->
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="Explore writing, music, visual art, and other work by Sean Forde.">
+
+    <title>Substack Posts — Sean Forde</title>
+
+
+    <!-- =========================================================
+         SHARED STYLES
+         ========================================================= -->
+
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+
+
+<body>
+
+    <main>
+
+        <!-- =====================================================
+             SITE NAVIGATION
+             Return to the main Sean Forde calling-card page.
+             ===================================================== -->
+
+        <a class="back" href="index.html">
+            ← Sean Forde
+        </a>
+
+
+        <!-- =====================================================
+             PAGE HEADER
+             ===================================================== -->
+
+        <header class="archive-header">
+
+            <h1>
+                Substack Posts
+            </h1>
+
+            <p class="subtitle">
+                Everything lives on Substack. This is another way in.
+            </p>
+
+        </header>
+
+
+        <!-- =====================================================
+             ARCHIVE
+
+             Desktop:
+             Navigation sits beside the posts.
+
+             Small screens:
+             CSS will reorganize this into a mobile-friendly
+             browsing experience.
+
+             JavaScript controls WHAT appears.
+             CSS controls WHERE and HOW it appears.
+             ===================================================== -->
+
+        <div class="archive-layout">
+
+
+            <!-- =================================================
+                 ARCHIVE NAVIGATION
+
+                 substackPosts.js builds this automatically from
+                 the metadata found in the RSS feed.
+
+                 Expected categories:
+
+                 All Posts
+
+                 Medium
+                 Format
+                 State
+                 Topic
+
+                 Individual category names are NOT hard-coded
+                 here. They come from the actual posts.
+                 ================================================= -->
+
+            <aside class="archive-sidebar" aria-label="Browse posts">
+
+                <div class="archive-sidebar-header">
+
+                    <h2 class="archive-sidebar-title">
+                        Browse
+                    </h2>
+
+                </div>
+
+
+                <nav id="archive-navigation" class="archive-navigation" aria-label="Post categories">
+                    <!--
+                        JavaScript creates the archive
+                        navigation here.
+                    -->
+                </nav>
+
+            </aside>
+
+
+            <!-- =================================================
+                 ARCHIVE CONTENT
+                 ================================================= -->
+
+            <section class="archive-content" aria-label="Substack posts">
+
+
+                <!-- =============================================
+                     STATUS
+
+                     JavaScript uses this for:
+
+                     - Loading
+                     - No results
+                     - Errors
+
+                     aria-live allows assistive technology to hear
+                     meaningful status changes without interrupting
+                     the visitor.
+                     ============================================= -->
+
+                <p id="status" class="archive-status" role="status" aria-live="polite">
+                    Loading posts…
+                </p>
+
+
+                <!-- =============================================
+                     POSTS
+
+                     substackPosts.js populates this container.
+
+                     The same container is reused whenever the
+                     visitor chooses a category.
+                     ============================================= -->
+
+                <div id="posts" class="archive-posts"></div>
+
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    <!-- =========================================================
+         PAGE BEHAVIOR
+
+         substackPosts.js owns:
+
+         - RSS loading
+         - Metadata parsing
+         - Category discovery
+         - Category counts
+         - Filtering
+         - Sorting
+         - Post rendering
+         - Archive navigation
+
+         defer ensures the HTML is parsed before JavaScript runs.
+         ========================================================= -->
+
+    <script src="substackPosts.js" defer></script>
+
+</body>
+
+</html>
