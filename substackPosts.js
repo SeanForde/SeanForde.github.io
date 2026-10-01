@@ -58,8 +58,7 @@
    ========================================================= */
 
 const SUBSTACK_FEED =
-    "https://smichaelforde.substack.com/feed";
-
+    "substack-feed.xml";
 
 /*
  * Turn detailed console information on or off.
