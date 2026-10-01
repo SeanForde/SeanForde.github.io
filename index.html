@@ -2,104 +2,170 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sean Forde</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f6f4ef;
-      color: #1f2933;
-    }
+    <!-- =========================================================
+         PAGE SETUP
+         ========================================================= -->
 
-    main {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 64px 24px;
-    }
+    <meta charset="UTF-8">
 
-    header {
-      margin-bottom: 48px;
-    }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    h1 {
-      font-size: 3rem;
-      margin: 0 0 12px;
-    }
+    <meta name="description" content="Sean Forde — writer, musician, builder, and curious person.">
 
-    .subtitle {
-      font-size: 1.25rem;
-      line-height: 1.5;
-      color: #4b5563;
-    }
+    <title>Sean Forde</title>
 
-    .card {
-      display: block;
-      background: white;
-      border-radius: 18px;
-      padding: 24px;
-      margin-bottom: 18px;
-      text-decoration: none;
-      color: inherit;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
 
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.09);
-    }
+    <!-- =========================================================
+         SHARED STYLES
+         ========================================================= -->
 
-    .card h2 {
-      margin: 0 0 8px;
-      font-size: 1.4rem;
-    }
+    <link rel="stylesheet" href="styles.css">
 
-    .card p {
-      margin: 0;
-      line-height: 1.5;
-      color: #52606d;
-    }
-
-    .locked {
-      opacity: 0.65;
-      cursor: not-allowed;
-    }
-
-    .note {
-      margin-top: 36px;
-      font-size: 0.95rem;
-      color: #6b7280;
-    }
-  </style>
 </head>
 
+
 <body>
-  <main>
-    <header>
-      <h1>Sean Forde</h1>
-      <p class="subtitle">
-        Writer, musician, and builder exploring attention,
-        meaning, and the strange business of being a person.
-      </p>
-    </header>
 
-    <a class="card" href="https://smichaelforde.substack.com/">
-      <h2>Writing</h2>
-      <p>Essays and reflections on Substack.</p>
-    </a>
+    <main class="home">
 
-    <a class="card" href="#">
-      <h2>Music</h2>
-      <p>Songs, albums, scores, and experiments. Link coming soon.</p>
-    </a>
 
-    <p class="note">
-      This site is just a small front door. More rooms will appear over time.
-    </p>
-  </main>
+        <!-- =====================================================
+             INTRODUCTION
+
+             This is the handshake.
+
+             Someone may have arrived here because they just met
+             Sean, scanned a QR code, followed a link, or wondered
+             what he makes.
+
+             Keep this human before making it informational.
+             ===================================================== -->
+
+        <header class="home-intro">
+
+            <p class="home-hello">
+                Hi, I'm
+            </p>
+
+            <h1>
+                Sean Forde.
+            </h1>
+
+            <p class="home-subtitle">
+                I write things, make music, build things,
+                and ask a lot of questions.
+            </p>
+
+            <p class="home-introduction">
+                This is a little place to keep some of it.
+            </p>
+
+        </header>
+
+
+        <!-- =====================================================
+             MAIN DOORS
+
+             These are intentionally broad.
+
+             A new visitor shouldn't need to understand the site's
+             taxonomy before deciding where to go.
+             ===================================================== -->
+
+        <nav class="home-doors" aria-label="Explore Sean Forde's work">
+
+
+            <!-- =================================================
+                 EXPLORE
+
+                 This routes into the archive we just built.
+
+                 From there, visitors can browse Writing, Music,
+                 Visual Art, Essays, Songs, Voice Memos, Topics,
+                 and whatever else eventually appears.
+                 ================================================= -->
+
+            <a class="home-card home-card-primary" href="substackPosts.html">
+
+                <span class="home-card-number">
+                    01
+                </span>
+
+                <span class="home-card-content">
+
+                    <span class="home-card-title">
+                        Look Around
+                    </span>
+
+                    <span class="home-card-description">
+                        Writing, songs, drawings, experiments,
+                        and other things I've made.
+                    </span>
+
+                </span>
+
+                <span class="home-card-arrow" aria-hidden="true">
+                    →
+                </span>
+
+            </a>
+
+
+            <!-- =================================================
+                 SUBSTACK
+
+                 Direct route for someone who already knows what
+                 they're looking for or wants to subscribe.
+                 ================================================= -->
+
+            <a class="home-card" href="https://smichaelforde.substack.com/" target="_blank" rel="noopener noreferrer">
+
+                <span class="home-card-number">
+                    02
+                </span>
+
+                <span class="home-card-content">
+
+                    <span class="home-card-title">
+                        Substack
+                    </span>
+
+                    <span class="home-card-description">
+                        The place where everything actually lives.
+                    </span>
+
+                </span>
+
+                <span class="home-card-arrow" aria-hidden="true">
+                    ↗
+                </span>
+
+            </a>
+
+        </nav>
+
+
+        <!-- =====================================================
+             SMALL HUMAN NOTE
+
+             Not a mission statement.
+             Not a professional biography.
+
+             Just enough personality to make the page feel inhabited.
+             ===================================================== -->
+
+        <footer class="home-footer">
+
+            <p>
+                Thanks for stopping by.
+                Stay curious.
+            </p>
+
+        </footer>
+
+    </main>
+
 </body>
 
 </html>
