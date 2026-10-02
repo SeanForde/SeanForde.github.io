@@ -24,8 +24,16 @@ jobs:
             --location \
             --silent \
             --show-error \
+            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36" \
+            --header "Accept: application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8" \
             "https://smichaelforde.substack.com/feed" \
             --output substack-feed.xml
+
+      - name: Verify feed
+        run: |
+          test -s substack-feed.xml
+          grep -q "<rss" substack-feed.xml
+          echo "Substack RSS feed downloaded successfully."
 
       - name: Commit updated feed
         run: |
