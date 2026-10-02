@@ -19,21 +19,33 @@ jobs:
 
       - name: Download Substack feed
         run: |
+          echo "Requesting Substack RSS feed..."
+
           curl \
-            --fail \
             --location \
-            --silent \
             --show-error \
-            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36" \
+            --user-agent "Mozilla/5.0" \
             --header "Accept: application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8" \
-            "https://smichaelforde.substack.com/feed" \
-            --output substack-feed.xml
+            --dump-header response-headers.txt \
+            --output substack-feed.xml \
+            --write-out "HTTP STATUS: %{http_code}\n" \
+            "https://smichaelforde.substack.com/feed"
 
       - name: Verify feed
         run: |
+          echo "Checking downloaded file..."
+
           test -s substack-feed.xml
-          grep -q "<rss" substack-feed.xml
-          echo "Substack RSS feed downloaded successfully."
+
+          if grep -q "<rss" substack-feed.xml; then
+            echo "SUCCESS: Valid RSS feed detected."
+          else
+            echo "ERROR: Downloaded file is not an RSS feed."
+            echo ""
+            echo "First 20 lines of downloaded response:"
+            head -n 20 substack-feed.xml
+            exit 1
+          fi successfully."
 
       - name: Commit updated feed
         run: |
