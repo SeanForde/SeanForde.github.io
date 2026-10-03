@@ -5,7 +5,7 @@ on:
     # Check Substack once per hour, at 17 minutes past the hour.
     - cron: "17 * * * *"
 
-  # Also lets us run this manually from the GitHub Actions page.
+  # Also allows a manual refresh from the GitHub Actions page.
   workflow_dispatch:
 
 permissions:
@@ -21,38 +21,65 @@ jobs:
         uses: actions/checkout@v5
 
       # Download the latest RSS feed from Substack.
+      #
+      # Download to a temporary file first. This means a bad response
+      # from Substack can never overwrite the working feed on the site.
       - name: Download Substack feed
         run: |
           echo "Requesting Substack RSS feed..."
 
-          curl \
-            --fail \
+          HTTP_STATUS=$(curl \
             --location \
             --show-error \
             --user-agent "Mozilla/5.0" \
             --header "Accept: application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8" \
-            --output substack-feed.xml \
-            "https://smichaelforde.substack.com/feed"
+            --output substack-feed-new.xml \
+            --write-out "%{http_code}" \
+            "https://smichaelforde.substack.com/feed")
 
-      # Make sure we actually received an RSS feed before replacing
-      # the copy used by the website.
-      - name: Verify feed
-        run: |
-          echo "Checking downloaded file..."
+          echo "HTTP STATUS: $HTTP_STATUS"
 
-          test -s substack-feed.xml
-
-          if grep -q "<rss" substack-feed.xml; then
-            echo "SUCCESS: Valid RSS feed detected."
-          else
-            echo "ERROR: Downloaded file is not an RSS feed."
+          if [ "$HTTP_STATUS" != "200" ]; then
             echo ""
-            echo "First 20 lines of downloaded response:"
-            head -n 20 substack-feed.xml
+            echo "ERROR: Substack returned HTTP $HTTP_STATUS."
+            echo ""
+            echo "Beginning of response:"
+            head -c 1000 substack-feed-new.xml || true
+            echo ""
             exit 1
           fi
 
-      # Commit only when Substack has actually changed.
+          echo ""
+          echo "Substack returned HTTP 200."
+
+      # Make sure the downloaded file is really an RSS feed.
+      - name: Verify Substack feed
+        run: |
+          echo "Checking downloaded file..."
+
+          if [ ! -s substack-feed-new.xml ]; then
+            echo "ERROR: Substack returned an empty file."
+            exit 1
+          fi
+
+          if grep -q "<rss" substack-feed-new.xml; then
+            echo "SUCCESS: Valid RSS feed detected."
+          else
+            echo "ERROR: Downloaded file does not appear to be RSS."
+            echo ""
+            echo "Beginning of response:"
+            head -c 1000 substack-feed-new.xml || true
+            echo ""
+            exit 1
+          fi
+
+      # Only after validation do we replace the website's feed.
+      - name: Replace website feed
+        run: |
+          mv substack-feed-new.xml substack-feed.xml
+          echo "Website feed replaced with latest Substack feed."
+
+      # Commit the new feed only if its contents actually changed.
       - name: Commit updated feed
         run: |
           git config user.name "github-actions[bot]"
@@ -63,6 +90,8 @@ jobs:
           if git diff --cached --quiet; then
             echo "Substack feed has not changed."
           else
+            echo "Substack feed has changed. Committing update..."
             git commit -m "Update Substack feed"
             git push
+            echo "SUCCESS: Updated Substack feed pushed to GitHub."
           fi
