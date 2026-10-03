@@ -1,65 +1,36 @@
 /*
  * substackPosts.js
  *
- * THE BRAIN OF THE SUBSTACK ARCHIVE
+ * SUBSTACK ARCHIVE
  *
  * Substack remains the canonical source of content.
- * This file:
  *
- * 1. Loads the Substack RSS feed.
- * 2. Converts RSS items into standard post objects.
- * 3. Reads structured metadata from descriptions.
- * 4. Discovers available archive categories automatically.
- * 5. Counts how many posts belong to each category.
- * 6. Builds archive navigation when the HTML provides it.
- * 7. Filters the master post collection.
- * 8. Displays the appropriate posts.
+ * This page provides a simple alternate way to browse that work.
  *
  *
- * DATA FLOW
- *
- * Substack RSS
- *      ↓
- * loadSubstackPosts()
- *      ↓
- * allPosts
- *      ↓
- * ┌────────────────────┐
- * │                    │
- * ↓                    ↓
- * buildArchiveData()   displayPosts()
- * ↓
- * navigation
- *
- *
- * /*
  * DESCRIPTION CONVENTION
  *
- * Structured metadata uses explicit key:value pairs:
+ * Begin the Substack description with either:
  *
- * medium: Music | format: Song (Cover), Essay | state: Voice Memo | topic: Creativity, Family
+ * Music | Description goes here.
  *
- * The four recognized keys are:
+ * or:
  *
- * medium
- * format
- * state
- * topic
+ * Writing | Description goes here.
  *
- * Values inside a dimension may be separated by commas.
  *
- * Example:
+ * Everything before the FIRST "|" is treated as the category.
+ * Everything after it is treated as the human-readable description.
  *
- * medium: Music | format: Song (Original), Essay | state: Voice Memo (Improv) | topic: Creativity, Becoming
+ * Examples:
  *
- * Empty dimensions are allowed:
+ * Music | A living-room recording of Beat It.
  *
- * medium: Writing | format: Essay | state: | topic: Attention, Agency
+ * Writing | An essay about attention, memory, and being seen.
  *
- * The order of the four pairs does not matter.
  *
- * Older posts without structured metadata still work.
- * They simply do not contribute categories to the archive navigation.
+ * Posts without this convention still appear under All Posts.
+ * They simply are not included in the Music or Writing filters.
  */
 
 
@@ -67,67 +38,53 @@
    SETTINGS
    ========================================================= */
 
-const SUBSTACK_FEED =
-    "substack-feed.xml";
+const SUBSTACK_FEED = "substack-feed.xml";
+
 
 /*
- * Turn detailed console information on or off.
+ * These are intentionally the only categories for now.
+ *
+ * Keeping this list explicit means an accidental "|" inside an
+ * older description cannot create a strange new archive category.
+ *
+ * More categories can be added later simply by adding them here.
+ */
+
+const CATEGORIES = [
+    "Writing",
+    "Music"
+];
+
+
+/*
+ * Detailed console logging can be useful while building.
+ *
+ * Change this to false once everything is working reliably.
  */
 
 const DEBUG = true;
 
 
-/*
- * These are the four dimensions understood by the archive.
- *
- * The keys match the properties stored on each post.
- * The labels are what visitors will eventually see.
- */
-
-const ARCHIVE_DIMENSIONS = [
-    {
-        key: "medium",
-        label: "Medium"
-    },
-    {
-        key: "format",
-        label: "Format"
-    },
-    {
-        key: "state",
-        label: "State"
-    },
-    {
-        key: "topic",
-        label: "Topic"
-    }
-];
-
-
 /* =========================================================
    APPLICATION STATE
-
-   allPosts is the single master collection.
-
-   We do NOT create separate permanent collections for
-   music, essays, poems, etc.
-
-   Those views are always derived from allPosts.
    ========================================================= */
+
+/*
+ * allPosts is the single master collection.
+ *
+ * Filtering never changes this array.
+ */
 
 let allPosts = [];
 
 
 /*
- * null + null means:
+ * null means:
  *
  * Show All Posts
  */
 
-let activeFilter = {
-    dimension: null,
-    value: null
-};
+let activeCategory = null;
 
 
 /* =========================================================
@@ -143,17 +100,14 @@ function debugLog(...messages) {
 
 
 /* =========================================================
-   NORMALIZE VALUE
-
-   Used when comparing metadata.
-
-   Visitors should not get different results because one
-   description says "Voice Memo" and another accidentally
-   says "voice memo".
-
-   We preserve the original label for display, but compare
-   normalized versions internally.
+   NORMALIZE TEXT
    ========================================================= */
+
+/*
+ * Used when comparing categories.
+ *
+ * "Music", "music", and " MUSIC " should all mean the same thing.
+ */
 
 function normalizeValue(value) {
 
@@ -164,223 +118,160 @@ function normalizeValue(value) {
 
 
 /* =========================================================
-   PARSE LIST
-
-   Convert:
-
-   "Music, Visual Art"
-
-   into:
-
-   ["Music", "Visual Art"]
-   ========================================================= */
-
-function parseList(value) {
-
-    if (!value) {
-        return [];
-    }
-
-
-    /*
-     * Remove duplicates inside the same metadata field while
-     * preserving the first version of the label encountered.
-     */
-
-    const values = value
-        .split(",")
-        .map(item => item.trim())
-        .filter(item => item !== "");
-
-
-    const uniqueValues = [];
-    const seenValues = new Set();
-
-
-    values.forEach(item => {
-
-        const normalized =
-            normalizeValue(item);
-
-
-        if (!seenValues.has(normalized)) {
-
-            seenValues.add(normalized);
-
-            uniqueValues.push(item);
-        }
-    });
-
-
-    return uniqueValues;
-}
-
-
-/* =========================================================
    CLEAN DESCRIPTION
-
-   RSS descriptions may contain HTML.
-
-   Convert the HTML into plain text before attempting
-   to read metadata.
    ========================================================= */
+
+/*
+ * RSS descriptions may contain HTML.
+ *
+ * Convert that HTML into plain text before reading the category
+ * and description.
+ */
 
 function cleanDescription(descriptionHTML) {
 
     const container =
         document.createElement("div");
 
-
     container.innerHTML =
         descriptionHTML;
 
-
-    return container.textContent.trim();
+    return container.textContent
+        .replace(/\s+/g, " ")
+        .trim();
 }
 
 
 /* =========================================================
    PARSE DESCRIPTION
-
-   Expected first line:
-
-   Medium | Format | State | Topic
-
-   Older posts without structured metadata still work.
-   Their metadata arrays remain empty and their complete
-   description remains visible.
    ========================================================= */
+
+/*
+ * Expected convention:
+ *
+ * Music | A living-room recording of Beat It.
+ *
+ * Writing | An essay about attention and memory.
+ *
+ *
+ * RULE:
+ *
+ * Everything before the FIRST "|" is a possible category.
+ * Everything after the FIRST "|" is the description.
+ *
+ *
+ * Only categories listed in CATEGORIES are accepted.
+ *
+ * If the description does not begin with a recognized category,
+ * the post remains uncategorized and its complete description
+ * remains visible.
+ */
 
 function parsePostDescription(descriptionHTML) {
 
-    const description =
+    const fullDescription =
         cleanDescription(descriptionHTML);
 
+
     /*
-     * Default result.
-     *
-     * If no structured metadata is found, the post still works.
-     * Its complete description remains visible.
+     * Empty description.
      */
 
-    const result = {
-        medium: [],
-        format: [],
-        state: [],
-        topic: [],
-        description: description,
-        metadataFound: false
+    if (!fullDescription) {
+
+        return {
+            category: null,
+            description: ""
+        };
+    }
+
+
+    /*
+     * Find the FIRST pipe.
+     */
+
+    const pipeIndex =
+        fullDescription.indexOf("|");
+
+
+    /*
+     * No pipe means there is no structured category.
+     *
+     * Keep the complete description.
+     */
+
+    if (pipeIndex === -1) {
+
+        return {
+            category: null,
+            description: fullDescription
+        };
+    }
+
+
+    /*
+     * Separate the possible category from the human description.
+     */
+
+    const possibleCategory =
+        fullDescription
+            .slice(0, pipeIndex)
+            .trim();
+
+
+    const humanDescription =
+        fullDescription
+            .slice(pipeIndex + 1)
+            .trim();
+
+
+    /*
+     * Check whether the category is one we recognize.
+     */
+
+    const category =
+        CATEGORIES.find(
+            item =>
+                normalizeValue(item) ===
+                normalizeValue(possibleCategory)
+        );
+
+
+    /*
+     * A pipe exists, but the text before it is not one of our
+     * categories.
+     *
+     * Treat this like an ordinary description so old posts are
+     * not damaged by the new convention.
+     */
+
+    if (!category) {
+
+        return {
+            category: null,
+            description: fullDescription
+        };
+    }
+
+
+    /*
+     * Valid categorized post.
+     */
+
+    return {
+        category: category,
+        description: humanDescription
     };
-
-
-    if (!description) {
-        return result;
-    }
-
-
-    /*
-     * ---------------------------------------------------------
-     * FIND KEY:VALUE METADATA
-     * ---------------------------------------------------------
-     *
-     * Expected form:
-     *
-     * medium: Music |
-     * format: Song (Cover), Essay |
-     * state: Voice Memo |
-     * topic: Creativity, Family
-     *
-     * The pairs may appear in any order.
-     */
-
-    const metadataPattern =
-        /\b(medium|format|state|topic)\s*:\s*([\s\S]*?)(?=\s*\|\s*(?:medium|format|state|topic)\s*:|$)/gi;
-
-
-    const matches =
-        [...description.matchAll(metadataPattern)];
-
-
-    /*
-     * No recognized metadata?
-     *
-     * Leave the post alone.
-     */
-
-    if (matches.length === 0) {
-        return result;
-    }
-
-
-    /*
-     * ---------------------------------------------------------
-     * READ EACH PAIR
-     * ---------------------------------------------------------
-     */
-
-    matches.forEach(match => {
-
-        const key =
-            normalizeValue(match[1]);
-
-        const value =
-            match[2].trim();
-
-
-        if (
-            key === "medium" ||
-            key === "format" ||
-            key === "state" ||
-            key === "topic"
-        ) {
-
-            result[key] =
-                parseList(value);
-        }
-    });
-
-
-    /*
-     * We consider structured metadata found when at least one
-     * recognized key:value pair exists.
-     *
-     * This lets fields such as "state:" intentionally remain
-     * empty without breaking the post.
-     */
-
-    result.metadataFound = true;
-
-
-    /*
-     * ---------------------------------------------------------
-     * DESCRIPTION
-     * ---------------------------------------------------------
-     *
-     * For now, when the RSS description is being used as the
-     * metadata record itself, do not display that machine-readable
-     * metadata underneath the post title.
-     *
-     * We can later add a separate human description source if
-     * Substack exposes one reliably in the RSS feed.
-     */
-
-    result.description = "";
-
-
-    return result;
 }
 
 
 /* =========================================================
    FIND HERO IMAGE
-
-   Current strategy:
-
-   Look for an RSS <enclosure> whose MIME type is an image.
-
-   We can expand this later if inspection of the actual
-   Substack feed shows another reliable image location.
    ========================================================= */
+
+/*
+ * Look for an RSS <enclosure> whose MIME type is an image.
+ */
 
 function getPostImage(item) {
 
@@ -388,19 +279,21 @@ function getPostImage(item) {
         item.querySelector("enclosure");
 
 
-    if (enclosure) {
-
-        const type =
-            enclosure.getAttribute("type") ?? "";
-
-
-        const url =
-            enclosure.getAttribute("url") ?? "";
+    if (!enclosure) {
+        return "";
+    }
 
 
-        if (type.startsWith("image/")) {
-            return url;
-        }
+    const type =
+        enclosure.getAttribute("type") ?? "";
+
+
+    const url =
+        enclosure.getAttribute("url") ?? "";
+
+
+    if (type.startsWith("image/")) {
+        return url;
     }
 
 
@@ -410,10 +303,12 @@ function getPostImage(item) {
 
 /* =========================================================
    LOAD POSTS
-
-   Request the Substack RSS feed and convert every <item>
-   into the standard post object used by the website.
    ========================================================= */
+
+/*
+ * Request the local copy of the Substack RSS feed and convert
+ * every <item> into the standard post object used by this page.
+ */
 
 async function loadSubstackPosts() {
 
@@ -534,14 +429,10 @@ async function loadSubstackPosts() {
                             ?.textContent ?? "";
 
 
-                    const metadata =
+                    const parsedDescription =
                         parsePostDescription(
                             descriptionHTML
                         );
-
-
-                    const image =
-                        getPostImage(item);
 
 
                     const post = {
@@ -562,25 +453,13 @@ async function loadSubstackPosts() {
                                 ?.trim() ?? "",
 
                         image:
-                            image,
+                            getPostImage(item),
 
-                        medium:
-                            metadata.medium,
-
-                        format:
-                            metadata.format,
-
-                        state:
-                            metadata.state,
-
-                        topic:
-                            metadata.topic,
+                        category:
+                            parsedDescription.category,
 
                         description:
-                            metadata.description,
-
-                        metadataFound:
-                            metadata.metadataFound
+                            parsedDescription.description
                     };
 
 
@@ -594,32 +473,20 @@ async function loadSubstackPosts() {
                             `POST ${index + 1}: ${post.title}`
                         );
 
-
                         console.log(
-                            "Post object:",
-                            post
+                            "Category:",
+                            post.category ?? "Uncategorized"
                         );
 
-
                         console.log(
-                            "Metadata detected:",
-                            post.metadataFound
-                                ? "YES"
-                                : "NO"
+                            "Description:",
+                            post.description
                         );
-
 
                         console.log(
                             "Raw RSS description:",
                             descriptionHTML
                         );
-
-
-                        console.log(
-                            "Raw RSS item:",
-                            item
-                        );
-
 
                         console.groupEnd();
                     }
@@ -636,19 +503,8 @@ async function loadSubstackPosts() {
 
         if (DEBUG) {
 
-            const structuredCount =
-                posts.filter(
-                    post => post.metadataFound
-                ).length;
-
-
             console.log(
                 `5. ${posts.length} posts normalized.`
-            );
-
-
-            console.log(
-                `6. ${structuredCount} posts contain structured metadata.`
             );
 
 
@@ -659,27 +515,11 @@ async function loadSubstackPosts() {
                     title:
                         post.title,
 
-                    medium:
-                        post.medium.join(", "),
+                    category:
+                        post.category ?? "Uncategorized",
 
-                    format:
-                        post.format.join(", "),
-
-                    state:
-                        post.state.join(", "),
-
-                    topic:
-                        post.topic.join(", "),
-
-                    metadata:
-                        post.metadataFound
-                            ? "YES"
-                            : "NO",
-
-                    image:
-                        post.image
-                            ? "YES"
-                            : "NO"
+                    description:
+                        post.description
                 }))
             );
         }
@@ -715,215 +555,86 @@ async function loadSubstackPosts() {
 
 
 /* =========================================================
-   BUILD ARCHIVE DATA
-
-   Discover every metadata value that actually exists in
-   the current collection.
-
-   Nothing is hard-coded here.
-
-   If a new format called "Instrumental" appears in a post,
-   "Instrumental" automatically becomes available to the
-   archive navigation.
-
-   Result example:
-
-   {
-       medium: [
-           { value: "Music", count: 4 },
-           { value: "Writing", count: 7 }
-       ],
-
-       format: [
-           { value: "Essay", count: 5 },
-           { value: "Song", count: 4 }
-       ]
-   }
+   COUNT POSTS
    ========================================================= */
 
-function buildArchiveData(posts) {
+/*
+ * Count how many posts belong to one category.
+ */
 
-    const archiveData = {};
+function countPostsByCategory(
+    posts,
+    category
+) {
 
-
-    ARCHIVE_DIMENSIONS.forEach(dimension => {
-
-        /*
-         * Map normalized values to:
-         *
-         * {
-         *     value: original display label,
-         *     count: number of matching posts
-         * }
-         */
-
-        const values = new Map();
-
-
-        posts.forEach(post => {
-
-            const postValues =
-                post[dimension.key] ?? [];
-
-
-            postValues.forEach(value => {
-
-                const normalized =
-                    normalizeValue(value);
-
-
-                if (!normalized) {
-                    return;
-                }
-
-
-                if (!values.has(normalized)) {
-
-                    values.set(
-                        normalized,
-                        {
-                            value: value,
-                            count: 0
-                        }
-                    );
-                }
-
-
-                values.get(normalized).count += 1;
-            });
-        });
-
-
-        /*
-         * Alphabetical navigation is predictable and easy
-         * to scan.
-         */
-
-        archiveData[dimension.key] =
-            Array.from(values.values())
-                .sort((a, b) =>
-                    a.value.localeCompare(
-                        b.value,
-                        undefined,
-                        {
-                            sensitivity: "base"
-                        }
-                    )
-                );
-    });
-
-
-    return archiveData;
+    return posts.filter(
+        post =>
+            normalizeValue(post.category) ===
+            normalizeValue(category)
+    ).length;
 }
 
 
 /* =========================================================
    FILTER POSTS
-
-   One active navigation choice at a time.
-
-   Examples:
-
-   medium → Music
-   format → Essay
-   state  → Voice Memo
-   topic  → Family
-
-   No active filter means return every post.
    ========================================================= */
+
+/*
+ * No category means:
+ *
+ * All Posts
+ *
+ * Otherwise return posts belonging to the selected category.
+ */
 
 function filterPosts(
     posts,
-    dimension,
-    value
+    category
 ) {
 
-    if (!dimension || !value) {
+    if (!category) {
         return [...posts];
     }
 
 
-    /*
-     * Only allow known archive dimensions.
-     */
-
-    const validDimension =
-        ARCHIVE_DIMENSIONS.some(
-            item => item.key === dimension
-        );
-
-
-    if (!validDimension) {
-
-        console.warn(
-            "Unknown archive dimension:",
-            dimension
-        );
-
-        return [...posts];
-    }
-
-
-    const normalizedTarget =
-        normalizeValue(value);
-
-
-    return posts.filter(post => {
-
-        const values =
-            post[dimension] ?? [];
-
-
-        return values.some(
-            item =>
-                normalizeValue(item) ===
-                normalizedTarget
-        );
-    });
+    return posts.filter(
+        post =>
+            normalizeValue(post.category) ===
+            normalizeValue(category)
+    );
 }
 
 
 /* =========================================================
-   SET ACTIVE FILTER
-
-   This is the central doorway for navigation changes.
-
-   Rather than letting buttons independently manipulate
-   posts, every navigation action updates one state object
-   and then refreshes the interface.
+   SET ACTIVE CATEGORY
    ========================================================= */
 
-function setActiveFilter(
-    dimension = null,
-    value = null
-) {
+/*
+ * Every navigation click comes through here.
+ */
 
-    activeFilter = {
-        dimension: dimension,
-        value: value
-    };
+function setActiveCategory(category = null) {
+
+    activeCategory =
+        category;
 
 
     const visiblePosts =
         filterPosts(
             allPosts,
-            activeFilter.dimension,
-            activeFilter.value
+            activeCategory
         );
 
 
-    if (DEBUG) {
-
-        console.log(
-            "Filter changed:",
-            activeFilter
-        );
+    debugLog(
+        "Filter changed:",
+        activeCategory ?? "All Posts"
+    );
 
 
-        console.log(
-            `Displaying ${visiblePosts.length} / ${allPosts.length} posts`
-        );
-    }
+    debugLog(
+        `Displaying ${visiblePosts.length} / ${allPosts.length} posts`
+    );
 
 
     displayPosts(
@@ -932,8 +643,7 @@ function setActiveFilter(
 
 
     /*
-     * Rebuild navigation so its active state stays
-     * synchronized with the posts being displayed.
+     * Rebuild navigation so the active button stays synchronized.
      */
 
     buildNavigation(
@@ -944,19 +654,12 @@ function setActiveFilter(
 
 /* =========================================================
    CREATE FILTER BUTTON
-
-   Small helper used by buildNavigation().
-
-   Using real <button> elements gives us keyboard behavior
-   and accessibility semantics without recreating them
-   manually in JavaScript.
    ========================================================= */
 
 function createFilterButton(
     label,
-    dimension,
-    value,
-    count = null
+    category,
+    count
 ) {
 
     const button =
@@ -976,17 +679,12 @@ function createFilterButton(
      */
 
     const isActive =
-        dimension === null
+        category === null
 
-            ? activeFilter.dimension === null
+            ? activeCategory === null
 
-            : (
-                activeFilter.dimension === dimension &&
-                normalizeValue(
-                    activeFilter.value
-                ) ===
-                normalizeValue(value)
-            );
+            : normalizeValue(activeCategory) ===
+            normalizeValue(category);
 
 
     if (isActive) {
@@ -994,7 +692,6 @@ function createFilterButton(
         button.classList.add(
             "is-active"
         );
-
 
         button.setAttribute(
             "aria-current",
@@ -1025,48 +722,42 @@ function createFilterButton(
 
 
     /*
-     * Optional post count.
+     * Post count.
      */
 
-    if (count !== null) {
-
-        const countElement =
-            document.createElement("span");
+    const countElement =
+        document.createElement("span");
 
 
-        countElement.className =
-            "archive-filter-count";
+    countElement.className =
+        "archive-filter-count";
 
 
-        countElement.textContent =
-            count;
+    countElement.textContent =
+        count;
 
 
-        /*
-         * The count is visual information accompanying the
-         * label. Screen readers can already understand the
-         * button without needing the number repeated.
-         */
-
-        countElement.setAttribute(
-            "aria-hidden",
-            "true"
-        );
+    countElement.setAttribute(
+        "aria-hidden",
+        "true"
+    );
 
 
-        button.appendChild(
-            countElement
-        );
-    }
+    button.appendChild(
+        countElement
+    );
 
+
+    /*
+     * Filter when clicked.
+     */
 
     button.addEventListener(
         "click",
         () => {
 
-            setActiveFilter(
-                dimension,
-                value
+            setActiveCategory(
+                category
             );
         }
     );
@@ -1078,16 +769,23 @@ function createFilterButton(
 
 /* =========================================================
    BUILD NAVIGATION
-
-   The future HTML will provide:
-
-       id="archive-navigation"
-
-   Until that exists, this function simply exits.
-
-   That means this new JS remains compatible with the
-   current HTML while we build one file at a time.
    ========================================================= */
+
+/*
+ * Navigation is intentionally simple:
+ *
+ * All Posts
+ *
+ * MEDIUM
+ * Writing
+ * Music
+ *
+ *
+ * Writing and Music always appear.
+ *
+ * This means the interface remains stable even while older posts
+ * are gradually being updated to the new description convention.
+ */
 
 function buildNavigation(posts) {
 
@@ -1097,19 +795,10 @@ function buildNavigation(posts) {
         );
 
 
-    /*
-     * IMPORTANT:
-     *
-     * We have not updated HTML yet.
-     *
-     * Therefore a missing navigation container is expected
-     * and should NOT prevent the archive from loading.
-     */
-
     if (!navigation) {
 
-        debugLog(
-            "Archive navigation container not present yet. Posts will still display."
+        console.error(
+            "Archive HTML is missing #archive-navigation."
         );
 
         return;
@@ -1119,10 +808,6 @@ function buildNavigation(posts) {
     navigation.innerHTML = "";
 
 
-    const archiveData =
-        buildArchiveData(posts);
-
-
     /* -----------------------------------------------------
        ALL POSTS
        ----------------------------------------------------- */
@@ -1130,7 +815,6 @@ function buildNavigation(posts) {
     const allPostsButton =
         createFilterButton(
             "All Posts",
-            null,
             null,
             posts.length
         );
@@ -1147,143 +831,85 @@ function buildNavigation(posts) {
 
 
     /* -----------------------------------------------------
-       DIMENSIONS
+       MEDIUM
        ----------------------------------------------------- */
 
-    ARCHIVE_DIMENSIONS.forEach(
-        dimension => {
+    const section =
+        document.createElement("section");
 
 
-            const values =
-                archiveData[dimension.key];
+    section.className =
+        "archive-filter-group";
 
 
-            /*
-             * Don't create an empty navigation section.
-             */
-
-            if (!values || values.length === 0) {
-                return;
-            }
+    const heading =
+        document.createElement("h2");
 
 
-            const section =
-                document.createElement("section");
+    heading.className =
+        "archive-filter-heading";
 
 
-            section.className =
-                "archive-filter-group";
+    heading.textContent =
+        "Medium";
 
 
-            section.dataset.dimension =
-                dimension.key;
-
-
-            /* ---------------------------------------------
-               SECTION HEADING
-               --------------------------------------------- */
-
-            const heading =
-                document.createElement("h2");
-
-
-            heading.className =
-                "archive-filter-heading";
-
-
-            heading.textContent =
-                dimension.label;
-
-
-            section.appendChild(
-                heading
-            );
-
-
-            /* ---------------------------------------------
-               FILTER LIST
-               --------------------------------------------- */
-
-            const list =
-                document.createElement("div");
-
-
-            list.className =
-                "archive-filter-list";
-
-
-            values.forEach(item => {
-
-                const button =
-                    createFilterButton(
-                        item.value,
-                        dimension.key,
-                        item.value,
-                        item.count
-                    );
-
-
-                list.appendChild(
-                    button
-                );
-            });
-
-
-            section.appendChild(
-                list
-            );
-
-
-            navigation.appendChild(
-                section
-            );
-        }
+    section.appendChild(
+        heading
     );
 
 
-    if (DEBUG) {
+    const list =
+        document.createElement("div");
 
-        console.groupCollapsed(
-            "Archive navigation"
+
+    list.className =
+        "archive-filter-list";
+
+
+    CATEGORIES.forEach(category => {
+
+        const count =
+            countPostsByCategory(
+                posts,
+                category
+            );
+
+
+        const button =
+            createFilterButton(
+                category,
+                category,
+                count
+            );
+
+
+        list.appendChild(
+            button
         );
+    });
 
 
-        ARCHIVE_DIMENSIONS.forEach(
-            dimension => {
-
-                const values =
-                    archiveData[
-                    dimension.key
-                    ];
+    section.appendChild(
+        list
+    );
 
 
-                console.log(
-                    `${dimension.label}:`,
-                    values
-                        .map(
-                            item =>
-                                `${item.value} (${item.count})`
-                        )
-                        .join(", ") ||
-                    "none"
-                );
-            }
-        );
-
-
-        console.groupEnd();
-    }
+    navigation.appendChild(
+        section
+    );
 }
 
 
 /* =========================================================
    DISPLAY POSTS
-
-   Receives whatever collection should currently be visible.
-
-   This function does NOT decide which posts belong in a
-   category. It only renders the posts it is given.
    ========================================================= */
+
+/*
+ * This function only renders the collection it receives.
+ *
+ * It does not decide which posts belong to a category.
+ */
 
 function displayPosts(posts) {
 
@@ -1294,13 +920,6 @@ function displayPosts(posts) {
     const status =
         document.getElementById("status");
 
-
-    /*
-     * Guard against incorrect HTML.
-     *
-     * Once we update the HTML, these elements will be part
-     * of the contract between the two files.
-     */
 
     if (!container || !status) {
 
@@ -1342,35 +961,33 @@ function displayPosts(posts) {
 
 
     /*
-     * Sort newest → oldest without mutating the array.
+     * Sort newest → oldest without changing allPosts.
      */
 
-    const sortedPosts = [...posts]
-        .sort((a, b) => {
+    const sortedPosts =
+        [...posts].sort(
+            (a, b) => {
 
-            const dateA =
-                new Date(a.date).getTime();
-
-
-            const dateB =
-                new Date(b.date).getTime();
+                const dateA =
+                    new Date(a.date).getTime();
 
 
-            /*
-             * Keep invalid dates stable instead of allowing
-             * NaN to produce unpredictable sorting.
-             */
+                const dateB =
+                    new Date(b.date).getTime();
 
-            if (
-                Number.isNaN(dateA) ||
-                Number.isNaN(dateB)
-            ) {
-                return 0;
+
+                if (
+                    Number.isNaN(dateA) ||
+                    Number.isNaN(dateB)
+                ) {
+
+                    return 0;
+                }
+
+
+                return dateB - dateA;
             }
-
-
-            return dateB - dateA;
-        });
+        );
 
 
     sortedPosts.forEach(post => {
@@ -1422,18 +1039,9 @@ function displayPosts(posts) {
                 "";
 
 
-            /*
-             * Allow the browser to defer off-screen images.
-             */
-
             image.loading =
                 "lazy";
 
-
-            /*
-             * Helps the browser decode images without
-             * unnecessarily blocking page interaction.
-             */
 
             image.decoding =
                 "async";
@@ -1543,18 +1151,16 @@ function displayPosts(posts) {
 
 /* =========================================================
    START PAGE
-
-   This is the application's startup sequence.
-
-   1. Load RSS once.
-   2. Store it as allPosts.
-   3. Discover/build navigation.
-   4. Display everything.
-
-   Filtering after this point happens entirely in memory.
-   We do NOT request the RSS feed again every time someone
-   clicks a category.
    ========================================================= */
+
+/*
+ * 1. Load the RSS feed once.
+ * 2. Store the posts.
+ * 3. Build All / Writing / Music navigation.
+ * 4. Display every post.
+ *
+ * Filtering after this happens entirely in the browser.
+ */
 
 async function startPage() {
 
@@ -1564,63 +1170,23 @@ async function startPage() {
 
     try {
 
-        const posts =
+        allPosts =
             await loadSubstackPosts();
 
-
-        /*
-         * Establish the single master collection.
-         */
-
-        allPosts =
-            posts;
-
-
-        /*
-         * Discover categories from the actual archive.
-         */
-
-        const archiveData =
-            buildArchiveData(
-                allPosts
-            );
-
-
-        if (DEBUG) {
-
-            console.log(
-                "Archive data:",
-                archiveData
-            );
-        }
-
-
-        /*
-         * This will become visible after our HTML pass.
-         *
-         * For now, a missing navigation element is safe.
-         */
 
         buildNavigation(
             allPosts
         );
 
 
-        /*
-         * Default view = everything.
-         */
-
         displayPosts(
             allPosts
         );
 
 
-        if (DEBUG) {
-
-            console.log(
-                `Archive ready. Displaying ${allPosts.length} / ${allPosts.length} posts.`
-            );
-        }
+        debugLog(
+            `Archive ready. Displaying ${allPosts.length} posts.`
+        );
 
 
     } catch (error) {
