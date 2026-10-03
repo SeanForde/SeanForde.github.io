@@ -32,24 +32,34 @@
  * navigation
  *
  *
+ * /*
  * DESCRIPTION CONVENTION
  *
- * First line:
+ * Structured metadata uses explicit key:value pairs:
  *
- * Medium | Format | State | Topic
+ * medium: Music | format: Song (Cover), Essay | state: Voice Memo | topic: Creativity, Family
+ *
+ * The four recognized keys are:
+ *
+ * medium
+ * format
+ * state
+ * topic
+ *
+ * Values inside a dimension may be separated by commas.
  *
  * Example:
  *
- * Music, Visual Art | Song, Drawing | Voice Memo | Family, Creativity
- *
- * I recorded this at the kitchen table while the kids were drawing.
- *
- *
- * Multiple values inside one dimension are separated by commas.
+ * medium: Music | format: Song (Original), Essay | state: Voice Memo (Improv) | topic: Creativity, Becoming
  *
  * Empty dimensions are allowed:
  *
- * Writing | Essay | | Attention
+ * medium: Writing | format: Essay | state: | topic: Attention, Agency
+ *
+ * The order of the four pairs does not matter.
+ *
+ * Older posts without structured metadata still work.
+ * They simply do not contribute categories to the archive navigation.
  */
 
 
@@ -246,91 +256,118 @@ function parsePostDescription(descriptionHTML) {
     const description =
         cleanDescription(descriptionHTML);
 
+    /*
+     * Default result.
+     *
+     * If no structured metadata is found, the post still works.
+     * Its complete description remains visible.
+     */
+
+    const result = {
+        medium: [],
+        format: [],
+        state: [],
+        topic: [],
+        description: description,
+        metadataFound: false
+    };
+
 
     if (!description) {
-
-        return {
-            medium: [],
-            format: [],
-            state: [],
-            topic: [],
-            description: "",
-            metadataFound: false
-        };
+        return result;
     }
 
 
     /*
-     * Split the description into non-empty lines.
-     */
-
-    const lines = description
-        .split(/\r?\n/)
-        .map(line => line.trim())
-        .filter(line => line !== "");
-
-
-    const metadataLine =
-        lines[0] ?? "";
-
-
-    const metadataParts = metadataLine
-        .split("|")
-        .map(part => part.trim());
-
-
-    /*
-     * Our convention requires exactly four dimensions.
-     */
-
-    const metadataFound =
-        metadataParts.length === 4;
-
-
-    /*
-     * Backward compatibility:
+     * ---------------------------------------------------------
+     * FIND KEY:VALUE METADATA
+     * ---------------------------------------------------------
      *
-     * If this is an older post, keep the whole description
-     * and simply leave metadata empty.
+     * Expected form:
+     *
+     * medium: Music |
+     * format: Song (Cover), Essay |
+     * state: Voice Memo |
+     * topic: Creativity, Family
+     *
+     * The pairs may appear in any order.
      */
 
-    if (!metadataFound) {
+    const metadataPattern =
+        /\b(medium|format|state|topic)\s*:\s*([\s\S]*?)(?=\s*\|\s*(?:medium|format|state|topic)\s*:|$)/gi;
 
-        return {
-            medium: [],
-            format: [],
-            state: [],
-            topic: [],
-            description: description,
-            metadataFound: false
-        };
+
+    const matches =
+        [...description.matchAll(metadataPattern)];
+
+
+    /*
+     * No recognized metadata?
+     *
+     * Leave the post alone.
+     */
+
+    if (matches.length === 0) {
+        return result;
     }
 
 
-    const humanDescription = lines
-        .slice(1)
-        .join(" ");
+    /*
+     * ---------------------------------------------------------
+     * READ EACH PAIR
+     * ---------------------------------------------------------
+     */
+
+    matches.forEach(match => {
+
+        const key =
+            normalizeValue(match[1]);
+
+        const value =
+            match[2].trim();
 
 
-    return {
-        medium:
-            parseList(metadataParts[0]),
+        if (
+            key === "medium" ||
+            key === "format" ||
+            key === "state" ||
+            key === "topic"
+        ) {
 
-        format:
-            parseList(metadataParts[1]),
+            result[key] =
+                parseList(value);
+        }
+    });
 
-        state:
-            parseList(metadataParts[2]),
 
-        topic:
-            parseList(metadataParts[3]),
+    /*
+     * We consider structured metadata found when at least one
+     * recognized key:value pair exists.
+     *
+     * This lets fields such as "state:" intentionally remain
+     * empty without breaking the post.
+     */
 
-        description:
-            humanDescription,
+    result.metadataFound = true;
 
-        metadataFound:
-            true
-    };
+
+    /*
+     * ---------------------------------------------------------
+     * DESCRIPTION
+     * ---------------------------------------------------------
+     *
+     * For now, when the RSS description is being used as the
+     * metadata record itself, do not display that machine-readable
+     * metadata underneath the post title.
+     *
+     * We can later add a separate human description source if
+     * Substack exposes one reliably in the RSS feed.
+     */
+
+    result.description = "";
+
+
+    return result;
 }
 
 
