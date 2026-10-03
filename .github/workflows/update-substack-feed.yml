@@ -1,9 +1,11 @@
-name: Update Substack Feed 
+name: Update Substack Feed
 
 on:
   schedule:
+    # Check Substack once per hour, at 17 minutes past the hour.
     - cron: "17 * * * *"
 
+  # Also lets us run this manually from the GitHub Actions page.
   workflow_dispatch:
 
 permissions:
@@ -14,23 +16,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Get the current website files.
       - name: Check out repository
         uses: actions/checkout@v5
 
+      # Download the latest RSS feed from Substack.
       - name: Download Substack feed
         run: |
           echo "Requesting Substack RSS feed..."
 
           curl \
+            --fail \
             --location \
             --show-error \
             --user-agent "Mozilla/5.0" \
             --header "Accept: application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8" \
-            --dump-header response-headers.txt \
             --output substack-feed.xml \
-            --write-out "HTTP STATUS: %{http_code}\n" \
             "https://smichaelforde.substack.com/feed"
 
+      # Make sure we actually received an RSS feed before replacing
+      # the copy used by the website.
       - name: Verify feed
         run: |
           echo "Checking downloaded file..."
@@ -45,8 +50,9 @@ jobs:
             echo "First 20 lines of downloaded response:"
             head -n 20 substack-feed.xml
             exit 1
-          fi successfully."
+          fi
 
+      # Commit only when Substack has actually changed.
       - name: Commit updated feed
         run: |
           git config user.name "github-actions[bot]"
